@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="utf-8" />
+        <title>Program Naive Bayes: Deteksi Kebutaan</title>
+        <meta name="description" content="Deteksi kebutaan menggunakan algoritma naive bayes" />
+        <meta name="author" content="" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="lib/skeleton/css/normalize.css" />
+        <link rel="stylesheet" href="lib/skeleton/css/skeleton.css" />
+        <link rel="stylesheet" href="css/style.css" />
+        <!-- <link rel="icon" type="image/png" href="images/favicon.png" /> -->
+    </head>
+    <body>
+        <div class="container u-full-width">
+            <div class="header text-center">
+                <h3 class="header__title">Program Naive Bayes</h3>
+                <p class="header__subtitle">Studi Kasus: Deteksi Kebutaan</p>
+            </div>
+            <div class="row">
+                <div class="columns six">
+                    <!-- Panel Aturan -->
+                    <div class="panel">
+                        <div class="panel__header">
+                            <h2 class="panel__title">Aturan Data Training</h2>
+                        </div>
+                        <div class="panel__body" style="overflow-x: auto">
+                            <table class="table table_sm mb-0 u-full-width">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2">UMUR</th>
+                                        <th>DIABETES</th>
+                                        <th>HIPERTENSI</th>
+                                        <th colspan="2">INTRAOKULAR</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>35-45</td>
+                                        <td>MUDA</td>
+                                        <td>YA</td>
+                                        <td>YA</td>
+                                        <td><21</td>
+                                        <td>RENDAH</td>
+                                    </tr>
+                                    <tr>
+                                        <td>45-55</td>
+                                        <td>PARUBAYA</td>
+                                        <td>TIDAK</td>
+                                        <td>TIDAK</td>
+                                        <td>21-41</td>
+                                        <td>SEDANG</td>
+                                    </tr>
+                                    <tr>
+                                        <td>55-65</td>
+                                        <td>TUA</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>41-61</td>
+                                        <td>TINGGI</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- End Panel Aturan -->
+
+                    <!-- Unnormalized data training -->
+                    <div class="panel">
+                        <div class="panel__header">
+                            <h2 class="panel__title">Data Training</h2>
+                        </div>
+                        <div class="panel__body" style="max-height: 400px; overflow-y: auto">
+                            <table class="table table_sm table_fixed u-full-width">
+                                <thead>
+                                    <tr>
+                                        <th>Pasien</th>
+                                        <th>Umur</th>
+                                        <th>Diabetes</th>
+                                        <th>Hipertensi</th>
+                                        <th>Intraokular</th>
+                                        <th>Kebutaan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableUnnormalizedDataTraining"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- End Unnormalized data training -->
+
+                    <!-- Normalized data training -->
+                    <div class="panel">
+                        <div class="panel__header">
+                            <h2 class="panel__title">Normalisasi Data Training</h2>
+                        </div>
+                        <div class="panel__body" style="max-height: 400px; overflow-y: auto">
+                            <table class="table table_sm table_fixed u-full-width">
+                                <thead>
+                                    <tr>
+                                        <th>Pasien</th>
+                                        <th>Umur</th>
+                                        <th>Diabetes</th>
+                                        <th>Hipertensi</th>
+                                        <th>Intraokular</th>
+                                        <th>Kebutaan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableNormalizedDataTraining"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- End Normalized data training -->
+                    <!-- Normalized data training -->
+                    <div class="panel">
+                        <div class="panel__header">
+                            <h2 class="panel__title">Tabel Probabilitas Fitur</h2>
+                        </div>
+                        <div class="panel__body" style="overflow-x: auto">
+                            <table id="tableProbability" class="table table_sm u-full-width margin-bottom"></table>
+                            <div id="areaSmoothedTable" class="hidden">
+                                <p>Karena ada fitur yang nilainya <strong>0 (nol)</strong>, maka harus dilakukan smoothing terhadap probabilitas menggunakan metode Laplacian Smoothing.</p>
+                                <p>Diketahui:</p>
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td>Nilai Alpha</td>
+                                            <td class="nilai-alpha"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Jumlah Fitur</td>
+                                            <td class="jml-fitur"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <p>Maka berikut ini probabilitas setelah dilakukan smoothing.</p>
+
+                                <table id="tableSmoothedProbability" class="table table_sm u-full-width margin-bottom"></table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End Normalized data training -->
+                </div>
+                <div class="columns six">
+                    <!-- Normalized data training -->
+                    <div class="panel">
+                        <div class="panel__header">
+                            <h2 class="panel__title">Data Testing</h2>
+                        </div>
+                        <div class="panel__body" style="overflow-x: auto">
+                            <table class="table table_sm table_fixed u-full-width">
+                                <thead>
+                                    <tr>
+                                        <th>Pasien</th>
+                                        <th>Umur</th>
+                                        <th>Diabetes</th>
+                                        <th>Hipertensi</th>
+                                        <th>Intraokular</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableDataTesting"></tbody>
+                            </table>
+                            <form action="" onsubmit="app.addDataTraining(event)" id="formDataTesting">
+                                <div class="row">
+                                    <div class="columns four">
+                                        <label>Pasien</label>
+                                        <input type="text" name="pasien" class="u-full-width" placeholder="Nama Pasien" />
+                                    </div>
+                                    <div class="columns four">
+                                        <label>Umur</label>
+                                        <input type="number" name="umur" class="u-full-width" placeholder="Umur" />
+                                    </div>
+                                    <div class="columns four">
+                                        <label>Intraokular</label>
+                                        <input type="number" name="intraokular" class="u-full-width" placeholder="Intraokular" />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="columns six">
+                                        <label>Diabetes</label>
+                                        <select name="diabetes" class="u-full-width">
+                                            <option value="TIDAK">TIDAK</option>
+                                            <option value="YA">YA</option>
+                                        </select>
+                                    </div>
+                                    <div class="columns six">
+                                        <label>Hipertensi</label>
+                                        <select name="hipertensi" class="u-full-width">
+                                            <option value="TIDAK">TIDAK</option>
+                                            <option value="YA">YA</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button class="button-primary">Tambah</button>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- End Normalized data training -->
+
+                    <!-- Data testing result -->
+                    <div class="panel">
+                        <div class="panel__header">
+                            <h2 class="panel__title">Hasil Data Testing</h2>
+                        </div>
+                        <div class="panel__body" style="max-height: 400px; overflow-y: auto">
+                            <table class="table table_sm table_fixed u-full-width">
+                                <thead>
+                                    <tr>
+                                        <th>Pasien</th>
+                                        <th>Umur</th>
+                                        <th>Diabetes</th>
+                                        <th>Hipertensi</th>
+                                        <th>Intraokular</th>
+                                        <th>Kebutaan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableDataTestingResult"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- End Data testing result -->
+                </div>
+            </div>
+        </div>
+        <script src="data-training.js" type="text/javascript"></script>
+        <script src="data-testing.js" type="text/javascript"></script>
+        <script src="app.js" type="text/javascript"></script>
+    </body>
+</html>
