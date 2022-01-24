@@ -31,6 +31,7 @@ class NaiveBayes {
         this.tableDataTesting = document.querySelector(options.tableDataTesting);
         this.tableDataTestingResult = document.querySelector(options.tableDataTestingResult);
 
+        this.toggleWrapper();
         this.printUnnormalizedDataTraining();
         this.printNormalizedDataTraining();
         this.printNotSmoothedProbabilityTable();
@@ -249,7 +250,7 @@ class NaiveBayes {
      *
      * @param {Object} ev event ketika submit
      */
-    addDataTraining(ev) {
+    addDataTesting(ev) {
         ev.preventDefault();
         const form = ev.target;
 
@@ -273,12 +274,61 @@ class NaiveBayes {
     }
 
     /**
+     * Menambahkan data testing
+     *
+     * @param {Object} ev event ketika submit
+     * @param {Number} idx indeks data ke-i
+     */
+    deleteDataTesting(ev, idx) {
+        ev.preventDefault();
+        this.dataTesting = this.dataTesting.filter((data, index) => {
+            if (idx !== index) return data;
+        });
+
+        this.printTableDataTesting();
+        this.printTableDataTestingResult();
+    }
+
+    /**
+     * Menambahkan data training
+     *
+     * @param {Object} ev event ketika submit
+     */
+    addDataTraining(ev) {
+        ev.preventDefault();
+        const form = ev.target;
+
+        if (form.pasien.value.length < 1 || parseInt(form.umur.value) < 1 || parseInt(form.intraokular.value) < 1) return alert("Form harus terisi semua!");
+
+        this.dataTraining = [
+            {
+                "Nama Pasien": form.pasien.value,
+                Umur: parseInt(form.umur.value),
+                Intraokular: parseInt(form.intraokular.value),
+                Diabetes: form.diabetes.value,
+                Hipertensi: form.hipertensi.value,
+                Kebutaan: form.kebutaan.value,
+            },
+            ...this.dataTraining,
+        ];
+
+        form.pasien.value = "";
+        form.umur.value = "";
+        form.intraokular.value = "";
+
+        this.printUnnormalizedDataTraining();
+        this.printNormalizedDataTraining();
+        this.printNotSmoothedProbabilityTable();
+        this.printSmoothedProbabilityTable();
+    }
+
+    /**
      * Print data ke dalam tabel
      *
      * @param {Element} el
      * @param {Array} data
      */
-    printTable(el, data) {
+    printTable(el, data, deleteable = false) {
         let html = "";
         data.forEach((item, idx) => {
             html += `
@@ -288,7 +338,8 @@ class NaiveBayes {
                 <td>${item["Diabetes"]}</td>
                 <td>${item["Hipertensi"]}</td>
                 <td>${item["Intraokular"]}</td>
-                ${item["Kebutaan"] != "" ? `<td>${item["Kebutaan"]}</td>` : ""}
+                ${item["Kebutaan"] != "" ? `<td><span style="font-weight:600;color:${item["Kebutaan"] == "YA" ? "#e43232" : "#1bca55"}">${item["Kebutaan"]}</span></td>` : ""}
+                ${deleteable ? `<td><button onclick="app.deleteDataTesting(event, ${idx})" class="danger">Hapus</button></td>` : ""}
             </tr>
             `;
         });
@@ -390,7 +441,7 @@ class NaiveBayes {
      * Print data testing
      */
     printTableDataTesting() {
-        this.printTable(this.tableDataTesting, this.dataTesting);
+        this.printTable(this.tableDataTesting, this.dataTesting, true);
     }
 
     /**
@@ -398,6 +449,15 @@ class NaiveBayes {
      */
     printTableDataTestingResult() {
         this.printTable(this.tableDataTestingResult, this.resultDataTesting);
+    }
+
+    toggleWrapper() {
+        document.querySelectorAll('[data-toggle="toggle-wrapper"]').forEach((wrapper) => {
+            wrapper.addEventListener("click", (ev) => {
+                ev.preventDefault();
+                ev.target.parentNode.querySelector(".row").classList.toggle("hidden");
+            });
+        });
     }
 }
 
