@@ -20,7 +20,6 @@ class NaiveBayes {
         this.kelas = "Kebutaan";
         this.totalFitur = 4; // 4 diambil dari aturan di atas dikurangi dengan kebutaan (jadi ada 4)
         this.probability = {};
-        this.needSmooth = false;
 
         this.dataTraining = dataTraining;
         this.dataTesting = dataTesting;
@@ -28,6 +27,7 @@ class NaiveBayes {
         this.tableNormalizedDataTraining = document.querySelector(options.tableNormalizedDataTraining);
         this.tableProbability = document.querySelector(options.tableProbability);
         this.areaSmoothedTable = document.querySelector(options.areaSmoothedTable);
+        this.areaNoSmoothedTable = document.querySelector(options.areaNoSmoothedTable);
         this.tableDataTesting = document.querySelector(options.tableDataTesting);
         this.tableDataTestingResult = document.querySelector(options.tableDataTestingResult);
 
@@ -39,6 +39,9 @@ class NaiveBayes {
 
         if (this.needSmooth) {
             this.printSmoothedProbabilityTable();
+        } else {
+            this.areaSmoothedTable.classList.add("hidden");
+            this.areaNoSmoothedTable.classList.remove("hidden");
         }
 
         this.printTableDataTestingResult();
@@ -78,8 +81,6 @@ class NaiveBayes {
 
         const probabilityYa = totalYa / total;
         const probabilityTidak = totalTidak / total;
-
-        if (probabilityYa < 1 || probabilityTidak < 1) this.needSmooth = true;
 
         return { total, totalYa, totalTidak, probabilityYa, probabilityTidak };
     }
@@ -142,6 +143,26 @@ class NaiveBayes {
 
             return newData;
         });
+    }
+
+    get needSmooth() {
+        const probability = this.probabilityDataTraining;
+        let smooth = false;
+        for (const feature in probability) {
+            if (feature == this.kelas) {
+                smooth = probability[feature].probabilityYa === 0 || probability[feature].probabilityTidak === 0;
+                if (smooth) break;
+                continue;
+            }
+
+            for (const state in this.aturan[feature]) {
+                const prob = probability[feature][this.aturan[feature][state]];
+                smooth = prob.probabilityYa === 0 || prob.probabilityTidak === 0;
+                if (smooth) break;
+            }
+            if (smooth) break;
+        }
+        return smooth;
     }
 
     parseValue(number) {
@@ -209,9 +230,6 @@ class NaiveBayes {
             }, 0);
             probability[label]["probabilityTidak"] = probability[label]["TIDAK"] / probabilityKebutaan["totalTidak"];
 
-            if (probability[label]["probabilityYa"] < 1 || probability[label]["probabilityTidak"] < 1) {
-                this.needSmooth = true;
-            }
             probability[label]["totalYa"] = probabilityKebutaan["totalYa"];
             probability[label]["totalTidak"] = probabilityKebutaan["totalTidak"];
         });
@@ -346,6 +364,14 @@ class NaiveBayes {
         this.printNormalizedDataTraining();
         this.printNotSmoothedProbabilityTable();
         this.printSmoothedProbabilityTable();
+        this.printTableDataTestingResult();
+
+        this.probabilityDataTraining;
+
+        if (!this.needSmooth) {
+            this.areaSmoothedTable.classList.add("hidden");
+            this.areaNoSmoothedTable.classList.remove("hidden");
+        }
     }
 
     /**
@@ -479,8 +505,6 @@ class NaiveBayes {
      * Print data testing
      */
     printTableDataTestingResult() {
-        console.log(this.resultDataTesting);
-
         let html = "";
         this.resultDataTesting.forEach((item, idx) => {
             const counted = item.counted_kebutaan;
@@ -490,13 +514,13 @@ class NaiveBayes {
                 <td>
                     <strong>Kriteria:</strong><br/>${counted.Kriteria}<br/><br/>
                     <strong>(YA | ${item["Nama Pasien"]}):</strong> ${counted.CountFiturYa} <br/>
-                    <strong>(TIDAK | ${item["Nama Pasien"]}):</strong> ${counted.CountFiturYa} <br/> <br/>
+                    <strong>(TIDAK | ${item["Nama Pasien"]}):</strong> ${counted.CountFiturTidak} <br/> <br/>
 
                     <strong>Kebutaan:</strong><br/>
                     <strong>(${item["Nama Pasien"]} | YA):</strong> ${counted.CountYA} <br/>
                     <strong>(${item["Nama Pasien"]} | TIDAK):</strong> ${counted.CountTIDAK} <br/><br/>
 
-                    <strong>Kesimpulan Kebutaan:</strong> <span style="font-weight:600;color:${item["Kebutaan"] == "YA" ? "#e43232" : "#1bca55"}">${item["Kebutaan"]}</span>
+                    <strong>Peluang Kebutaan:</strong> <span style="font-weight:600;color:${item["Kebutaan"] == "YA" ? "#e43232" : "#1bca55"}">${item["Kebutaan"]}</span>
                 </td>
             </tr>
             `;
@@ -523,6 +547,7 @@ window.app = new NaiveBayes(dataTraining, dataTesting, {
     tableNormalizedDataTraining: "#tableNormalizedDataTraining",
     tableProbability: "#tableProbability",
     areaSmoothedTable: "#areaSmoothedTable",
+    areaNoSmoothedTable: "#areaNoSmoothedTable",
     tableDataTesting: "#tableDataTesting",
     tableDataTestingResult: "#tableDataTestingResult",
 });
