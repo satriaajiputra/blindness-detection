@@ -42,6 +42,10 @@ class NaiveBayes {
         }
 
         this.printTableDataTestingResult();
+
+        this.printText("outJmlData", this.probabilityKebutaan.total);
+        this.printText("outJmlYa", this.probabilityKebutaan.totalYa);
+        this.printText("outJmlTidak", this.probabilityKebutaan.totalTidak);
     }
 
     /**
@@ -115,6 +119,8 @@ class NaiveBayes {
                     probs["TIDAK"] = probs["TIDAK"] + this.smoothingAlpha;
                     probs["probabilityYa"] = probs["YA"] / (probabilityKebutaan["totalYa"] + this.totalFitur);
                     probs["probabilityTidak"] = probs["TIDAK"] / (probabilityKebutaan["totalTidak"] + this.totalFitur);
+                    probs["totalYa"] = probabilityKebutaan["totalYa"] + this.totalFitur;
+                    probs["totalTidak"] = probabilityKebutaan["totalTidak"] + this.totalFitur;
                     newProbability[feature][label] = probs;
                 }
             }
@@ -206,6 +212,8 @@ class NaiveBayes {
             if (probability[label]["probabilityYa"] < 1 || probability[label]["probabilityTidak"] < 1) {
                 this.needSmooth = true;
             }
+            probability[label]["totalYa"] = probabilityKebutaan["totalYa"];
+            probability[label]["totalTidak"] = probabilityKebutaan["totalTidak"];
         });
 
         return probability;
@@ -219,28 +227,42 @@ class NaiveBayes {
      * @return {Object}
      */
     countKebutaan(probability, data) {
-        // probabilitas untuk Kebutaan = YA
-
-        // probabilitas untuk Kebutaan = TIDAK
-
         const probKebutaan = {
             FiturYA: 1,
             FiturTIDAK: 1,
+            CountFiturYa: [],
+            CountFiturTidak: [],
+            Kriteria: `UMUR(${data.Umur}), DIABETES(${data.Diabetes}), HIPERTENSI(${data.Hipertensi}), INTRAOKULAR(${data.Intraokular})`,
         };
 
         for (const feature in probability) {
             if (feature == this.kelas) {
                 probKebutaan["FiturYA"] = probKebutaan["FiturYA"] * probability[feature].probabilityYa;
                 probKebutaan["FiturTIDAK"] = probKebutaan["FiturTIDAK"] * probability[feature].probabilityTidak;
+                probKebutaan["CountFiturYa"].push(`(${probability[feature].totalYa}/${probability[feature].total})`);
+                probKebutaan["CountFiturTidak"].push(`(${probability[feature].totalTidak}/${probability[feature].total})`);
                 continue;
             }
 
-            probKebutaan["FiturYA"] = probKebutaan["FiturYA"] * probability[feature][data[feature]].probabilityYa;
-            probKebutaan["FiturTIDAK"] = probKebutaan["FiturTIDAK"] * probability[feature][data[feature]].probabilityTidak;
+            const prob = probability[feature][data[feature]];
+            probKebutaan["FiturYA"] = probKebutaan["FiturYA"] * prob.probabilityYa;
+            probKebutaan["FiturTIDAK"] = probKebutaan["FiturTIDAK"] * prob.probabilityTidak;
+
+            probKebutaan["CountFiturYa"].push(`(${prob.YA}/${prob.totalYa})`);
+            probKebutaan["CountFiturTidak"].push(`(${prob.TIDAK}/${prob.totalTidak})`);
         }
+
+        probKebutaan["CountFiturYa"] = probKebutaan["CountFiturYa"].join(" X ") + " = " + this.parseValue(probKebutaan["FiturYA"]);
+        probKebutaan["CountFiturTidak"] = probKebutaan["CountFiturTidak"].join(" X ") + " = " + this.parseValue(probKebutaan["FiturTIDAK"]);
 
         probKebutaan["KebutaanYA"] = probKebutaan["FiturYA"] / (probKebutaan["FiturYA"] + probKebutaan["FiturTIDAK"]);
         probKebutaan["KebutaanTIDAK"] = probKebutaan["FiturTIDAK"] / (probKebutaan["FiturYA"] + probKebutaan["FiturTIDAK"]);
+        probKebutaan["CountYA"] = `${this.parseValue(probKebutaan["FiturYA"])} / (${this.parseValue(probKebutaan["FiturYA"])} + ${this.parseValue(
+            probKebutaan["FiturTIDAK"]
+        )}) = <strong>${this.parseValue(probKebutaan["KebutaanYA"])}</strong>`;
+        probKebutaan["CountTIDAK"] = `${this.parseValue(probKebutaan["FiturTIDAK"])} / (${this.parseValue(probKebutaan["FiturYA"])} + ${this.parseValue(
+            probKebutaan["FiturTIDAK"]
+        )}) = <strong>${this.parseValue(probKebutaan["KebutaanTIDAK"])}</strong>`;
 
         return probKebutaan;
     }
@@ -315,6 +337,10 @@ class NaiveBayes {
         form.pasien.value = "";
         form.umur.value = "";
         form.intraokular.value = "";
+
+        this.printText("outJmlData", this.probabilityKebutaan.total);
+        this.printText("outJmlYa", this.probabilityKebutaan.totalYa);
+        this.printText("outJmlTidak", this.probabilityKebutaan.totalTidak);
 
         this.printUnnormalizedDataTraining();
         this.printNormalizedDataTraining();
@@ -398,12 +424,13 @@ class NaiveBayes {
             </thead>
             <tbody>
                 ${(() => {
+                    const probKebutaan = probability[this.kelas];
                     let html = `
                     <tr>
                         <td>1</td>
                         <td colspan="2" class="text-center">${this.kelas}</td>
-                        <td>${this.parseValue(probability[this.kelas].probabilityYa)}</td>
-                        <td>${this.parseValue(probability[this.kelas].probabilityTidak)}</td>
+                        <td>${probKebutaan.totalYa} / ${probKebutaan.total} = <strong>${this.parseValue(probKebutaan.probabilityYa)}</strong></td>
+                        <td>${probKebutaan.totalTidak} / ${probKebutaan.total} = <strong>${this.parseValue(probKebutaan.probabilityTidak)}</strong></td>
                     </tr>
                     `;
                     let iteration = 0;
@@ -422,8 +449,12 @@ class NaiveBayes {
                                                 : ""
                                         }
                                         <td>${label}</td>
-                                        <td>${this.parseValue(probability[feature][label]["probabilityYa"])}</td>
-                                        <td>${this.parseValue(probability[feature][label]["probabilityTidak"])}</td>
+                                        <td>${probability[feature][label].YA}/${probability[feature][label].totalYa} = <strong>${this.parseValue(
+                                    probability[feature][label].probabilityYa
+                                )}</strong></td>
+                                        <td>${probability[feature][label].TIDAK}/${probability[feature][label].totalTidak} = <strong>${this.parseValue(
+                                    probability[feature][label].probabilityTidak
+                                )}</strong></td>
                                     </tr>
                                 `;
                                 before = feature;
@@ -448,7 +479,29 @@ class NaiveBayes {
      * Print data testing
      */
     printTableDataTestingResult() {
-        this.printTable(this.tableDataTestingResult, this.resultDataTesting);
+        console.log(this.resultDataTesting);
+
+        let html = "";
+        this.resultDataTesting.forEach((item, idx) => {
+            const counted = item.counted_kebutaan;
+            html += `
+            <tr>
+                <td>${item["Nama Pasien"]}</td>
+                <td>
+                    <strong>Kriteria:</strong><br/>${counted.Kriteria}<br/><br/>
+                    <strong>(YA | ${item["Nama Pasien"]}):</strong> ${counted.CountFiturYa} <br/>
+                    <strong>(TIDAK | ${item["Nama Pasien"]}):</strong> ${counted.CountFiturYa} <br/> <br/>
+
+                    <strong>Kebutaan:</strong><br/>
+                    <strong>(${item["Nama Pasien"]} | YA):</strong> ${counted.CountYA} <br/>
+                    <strong>(${item["Nama Pasien"]} | TIDAK):</strong> ${counted.CountTIDAK} <br/><br/>
+
+                    <strong>Kesimpulan Kebutaan:</strong> <span style="font-weight:600;color:${item["Kebutaan"] == "YA" ? "#e43232" : "#1bca55"}">${item["Kebutaan"]}</span>
+                </td>
+            </tr>
+            `;
+        });
+        this.tableDataTestingResult.innerHTML = html;
     }
 
     toggleWrapper() {
@@ -458,6 +511,10 @@ class NaiveBayes {
                 ev.target.parentNode.querySelector(".row").classList.toggle("hidden");
             });
         });
+    }
+
+    printText(id, text) {
+        document.getElementById(id).innerHTML = text;
     }
 }
 

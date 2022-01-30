@@ -24,7 +24,7 @@
                 <div class="tab-header" data-toggle="toggle-wrapper">
                     <h2 class="tab__header-title no-event">1. Data Training dan Normalisasi</h2>
                 </div>
-                <div class="row hidden" id="tahap1">
+                <div class="row" id="tahap1">
                     <div class="columns six">
                         <!-- Panel Aturan -->
                         <div class="panel">
@@ -169,15 +169,25 @@
                 <div class="tab-header" data-toggle="toggle-wrapper">
                     <h2 class="tab__header-title no-event">2. Menghitung Probabilitas Tiap Fitur</h2>
                 </div>
-                <div class="row hidden" id="tahap2">
+                <div class="row" id="tahap2">
                     <div class="columns six">
                         <!-- Probability data training -->
                         <div class="panel">
                             <div class="panel__header">
                                 <h2 class="panel__title">1) Tabel Probabilitas Tiap Fitur</h2>
                             </div>
-                            <div class="panel__body" style="overflow-x: auto">
-                                <table id="tableProbability" class="table table_sm u-full-width margin-bottom"></table>
+                            <div class="panel__body">
+                                <p>
+                                    <strong>Diketahui:</strong>
+                                    <ul>
+                                        <li>Jml. Data: <strong id="outJmlData"></strong></li>
+                                        <li>Jml. Ya: <strong id="outJmlYa"></strong></li>
+                                        <li>Jml. Tidak: <strong id="outJmlTidak"></strong></li>
+                                    </ul>
+                                </p>
+                                <div style="overflow-x: auto">
+                                    <table id="tableProbability" class="table table_sm u-full-width margin-bottom"></table>
+                                </div>
                             </div>
                         </div>
                         <!-- End Normalized data training -->
@@ -219,7 +229,7 @@
                 <div class="tab-header" data-toggle="toggle-wrapper">
                     <h2 class="tab__header-title no-event">3. Testing Data</h2>
                 </div>
-                <div class="row hidden" id="tahap3">
+                <div class="row" id="tahap3">
                     <div class="columns six">
                         <!-- Normalized data training -->
                         <div class="panel">
@@ -284,15 +294,11 @@
                                 <h2 class="panel__title">2) Hasil Testing</h2>
                             </div>
                             <div class="panel__body" style="max-height: 400px; overflow-y: auto">
-                                <table class="table table_sm table_fixed u-full-width">
+                                <table class="table table_sm u-full-width">
                                     <thead>
                                         <tr>
                                             <th>Pasien</th>
-                                            <th>Umur</th>
-                                            <th>Diabetes</th>
-                                            <th>Hipertensi</th>
-                                            <th>Intraokular</th>
-                                            <th>Kebutaan</th>
+                                            <th>Perhitungan</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tableDataTestingResult"></tbody>
